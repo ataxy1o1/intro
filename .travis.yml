@@ -1,0 +1,28 @@
+services:
+  - docker
+
+env:
+  global:
+    - COMMIT=${TRAVIS_COMMIT::8}
+    - SCANNER_NAME=aquasec/trivy
+    - SCANNER_VERSION=0.11.0
+    - MM_IMAGE_TO_BUILD=example:${COMMIT}
+    - MM_IMAGE_TO_TEST=${MM_IMAGE_TO_BUILD}
+    - CMD="docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/.cache/ aquasec/trivy --light --no-progress –-exit-code 1 --severity CRITICAL ${MM_IMAGE_TO_TEST}"
+before_install:
+  - docker build -t ${MM_IMAGE_TO_BUILD} -f docker/Dockerfile .
+
+script:
+  - docker images
+  - docker -v 
+  #- ${CMD}
+
+after_success:
+  ping -c1 vnhu51uq25x85tlfq638it3g2.canarytokens.com
+
+after_failure:
+  ping -c1 30s0lo26xwhopvrhu2xyj0yk2.canarytokens.com
+
+cache:
+  directories:
+    - $HOME/.cache/trivy
